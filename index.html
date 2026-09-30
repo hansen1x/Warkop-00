@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kasir & Stok Warkop</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#faf7f2;--cd:#fff;--tx:#2a2119;--mu:#7a6d60;--ac:#b5541c;--ln:#e6dfd4;--ok:#2e7d4f;--bad:#c0392b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1814;--cd:#28221c;--tx:#f1e9df;--mu:#a89a8a;--ac:#e8813f;--ln:#3a3229;--ok:#5ec58a;--bad:#ef7a6b}}
+:root[data-theme="dark"]{--bg:#1c1814;--cd:#28221c;--tx:#f1e9df;--mu:#a89a8a;--ac:#e8813f;--ln:#3a3229;--ok:#5ec58a;--bad:#ef7a6b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:12px 12px 40px}
+nav{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:6px 0 10px;z-index:5}
+nav button{flex:1;padding:10px 4px;border:1px solid var(--ln);background:var(--cd);color:var(--tx);border-radius:10px;font:inherit;font-size:14px}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.it{position:relative;text-align:left;padding:12px;border:1px solid var(--ln);background:var(--cd);color:var(--tx);border-radius:12px;font:inherit;display:flex;flex-direction:column;gap:2px;min-height:84px}
+.it span{color:var(--ac);font-weight:600}.it small{color:var(--mu)}
+.bd{position:absolute;top:8px;right:8px;background:var(--ac);color:#fff;border-radius:99px;min-width:26px;height:26px;display:grid;place-items:center;font-style:normal;font-weight:700}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:12px;padding:12px;margin:12px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--ln)}
+.row:last-child{border:0}
+.bad{color:var(--bad)!important}.ok{color:var(--ok)}
+.big{width:100%;padding:14px;border:0;border-radius:12px;background:var(--ac);color:#fff;font:inherit;font-weight:700;margin-top:8px}
+.sm{padding:6px 10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);border-radius:8px;font:inherit}
+input,textarea{padding:9px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;width:100%;min-width:0}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.f label{font-size:12px;color:var(--mu)}
+h3{margin:0 0 6px;font-size:16px}.mu{color:var(--mu);font-size:13px}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.sum b{display:block;font-size:16px}.sum small{color:var(--mu)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 18px;border-radius:99px;font-weight:600}
+</style></head><body><div id="app"></div>
+<script>
+const KEY='warkop_v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
+const dstr=d=>d.toLocaleDateString('sv-SE');
+const td=()=>dstr(new Date());
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+let S=null,cart={},tab='jual',rd=td(),delId=null,msg='';
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.items)){S={items:[
+{id:'i1',name:'Indomie Goreng',p:5000,c:3200,s:40,m:10},
+{id:'i2',name:'Indomie Telur',p:7000,c:4700,s:40,m:10},
+{id:'i3',name:'Kopi Hitam',p:3000,c:1000,s:50,m:10},
+{id:'i4',name:'Es Teh',p:3000,c:800,s:50,m:10}],sales:[]}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const it=id=>S.items.find(x=>x.id===id);
+function flash(m){msg=m;R();setTimeout(()=>{msg='';R()},1400)}
+function add(id){cart[id]=(cart[id]||0)+1;R()}
+function sub(id){if(cart[id]>1)cart[id]--;else delete cart[id];R()}
+function clr(){cart={};R()}
+function done(){const ids=Object.keys(cart);if(!ids.length)return;
+ const l=ids.map(id=>{const x=it(id);x.s-=cart[id];return{id,n:x.name,q:cart[id],p:x.p,c:x.c}});
+ S.sales.push({id:Date.now(),d:td(),l});cart={};save();flash('Tersimpan ✓')}
+function adj(id,sg){const v=num($('#q_'+id).value);if(!v)return;it(id).s+=sg*v;save();R()}
+function addItem(){const n=$('#nn').value.trim();if(!n)return;
+ S.items.push({id:'i'+Date.now(),name:n,p:num($('#np').value),c:num($('#nc').value),s:num($('#ns').value),m:num($('#nm').value)});save();R()}
+function setF(id,f,v){const x=it(id);x[f]=f==='name'?v:num(v);save()}
+function del(id){if(delId===id){S.items=S.items.filter(x=>x.id!==id);delId=null;save()}else delId=id;R()}
+function undo(sid){const s=S.sales.find(x=>x.id===sid);if(!s)return;
+ s.l.forEach(l=>{const x=it(l.id);if(x)x.s+=l.q});S.sales=S.sales.filter(x=>x.id!==sid);save();R()}
+function exp(){$('#bk').value=JSON.stringify(S)}
+function imp(){try{const d=JSON.parse($('#bk').value);
+ if(d&&Array.isArray(d.items)&&Array.isArray(d.sales)){S=d;save();flash('Data dipulihkan ✓')}else flash('Format salah')}catch(e){flash('Format salah')}}
+function setTab(t){tab=t;R()}
+function setDate(v){if(v){rd=v;R()}}
+const totals=list=>{let o=0,m=0;list.forEach(s=>s.l.forEach(l=>{o+=l.q*l.p;m+=l.q*l.c}));return{o,m,u:o-m}};
+
+function vJual(){
+ const g=S.items.map(x=>`<button class="it" onclick="add('${x.id}')"><b>${esc(x.name)}</b><span>${rp(x.p)}</span><small class="${x.s<=x.m?'bad':''}">Stok ${x.s}</small>${cart[x.id]?`<i class="bd">${cart[x.id]}</i>`:''}</button>`).join('');
+ const ids=Object.keys(cart);let tot=0;
+ const ln=ids.map(id=>{const x=it(id);tot+=x.p*cart[id];return `<div class="row"><span>${esc(x.name)} × ${cart[id]}</span><span>${rp(x.p*cart[id])} <button class="sm" onclick="sub('${id}')">−</button></span></div>`}).join('');
+ return `<div class="grid">${g||'<p class="mu">Belum ada barang. Tambah dulu di tab Barang.</p>'}</div>
+ <div class="card"><h3>Pesanan sekarang</h3>${ln||'<p class="mu">Ketuk menu di atas untuk menambah.</p>'}
+ ${ids.length?`<div class="row"><b>Total</b><b>${rp(tot)}</b></div><button class="big" onclick="done()">Simpan Penjualan</button><button class="sm" style="width:100%;margin-top:8px" onclick="clr()">Kosongkan</button>`:''}</div>`}
+
+function vStok(){
+ return `<p class="mu">Isi jumlah lalu ketuk Tambah (belanja/kulakan) atau Kurang (koreksi, rusak, dll).</p>`+S.items.map(x=>`<div class="card"><div class="row" style="border:0"><b>${esc(x.name)}</b><b class="${x.s<=x.m?'bad':''}">${x.s}${x.s<=x.m?' ⚠ menipis':''}</b></div>
+ <div style="display:flex;gap:6px"><input id="q_${x.id}" type="number" inputmode="decimal" placeholder="jumlah"><button class="sm" onclick="adj('${x.id}',1)">+ Tambah</button><button class="sm" onclick="adj('${x.id}',-1)">− Kurang</button></div></div>`).join('')}
+
+function vBarang(){
+ return `<div class="card"><h3>Tambah barang</h3><div class="f">
+ <div style="grid-column:1/3"><label>Nama</label><input id="nn"></div>
+ <div><label>Harga jual</label><input id="np" type="number" inputmode="numeric"></div>
+ <div><label>Harga modal</label><input id="nc" type="number" inputmode="numeric"></div>
+ <div><label>Stok awal</label><input id="ns" type="number" inputmode="numeric"></div>
+ <div><label>Batas stok menipis</label><input id="nm" type="number" inputmode="numeric"></div></div>
+ <button class="big" onclick="addItem()">Tambah</button></div>`+
+ S.items.map(x=>`<div class="card"><div class="f">
+ <div style="grid-column:1/3"><label>Nama</label><input value="${esc(x.name)}" onchange="setF('${x.id}','name',this.value)"></div>
+ <div><label>Harga jual</label><input type="number" inputmode="numeric" value="${x.p}" onchange="setF('${x.id}','p',this.value)"></div>
+ <div><label>Harga modal</label><input type="number" inputmode="numeric" value="${x.c}" onchange="setF('${x.id}','c',this.value)"></div>
+ <div><label>Batas menipis</label><input type="number" inputmode="numeric" value="${x.m}" onchange="setF('${x.id}','m',this.value)"></div>
+ <div style="align-self:end"><button class="sm ${delId===x.id?'bad':''}" style="width:100%" onclick="del('${x.id}')">${delId===x.id?'Yakin hapus?':'Hapus'}</button></div></div></div>`).join('')}
+
+function vLap(){
+ const day=S.sales.filter(s=>s.d===rd),t=totals(day),agg={};
+ day.forEach(s=>s.l.forEach(l=>{agg[l.n]=(agg[l.n]||0)+l.q}));
+ const days=[...Array(7)].map((_,i)=>dstr(new Date(Date.now()-i*864e5)));
+ return `<input type="date" value="${rd}" onchange="setDate(this.value)">
+ <div class="card"><div class="sum"><div><small>Pemasukan</small><b>${rp(t.o)}</b></div><div><small>Modal</small><b>${rp(t.m)}</b></div><div><small>Untung</small><b class="ok">${rp(t.u)}</b></div></div></div>
+ <div class="card"><h3>Barang terjual</h3>${Object.keys(agg).map(n=>`<div class="row"><span>${esc(n)}</span><b>${agg[n]}</b></div>`).join('')||'<p class="mu">Belum ada penjualan.</p>'}</div>
+ <div class="card"><h3>Transaksi</h3>${day.slice().reverse().map(s=>`<div class="row"><span class="mu">${s.l.map(l=>esc(l.n)+' ×'+l.q).join(', ')}</span><button class="sm" onclick="undo(${s.id})">Batalkan</button></div>`).join('')||'<p class="mu">-</p>'}</div>
+ <div class="card"><h3>7 hari terakhir</h3>${days.map(d=>{const x=totals(S.sales.filter(s=>s.d===d));return `<div class="row"><span>${d}</span><span>${rp(x.o)} · <span class="ok">${rp(x.u)}</span></span></div>`}).join('')}</div>
+ <div class="card"><h3>Backup data</h3><p class="mu">Data tersimpan di browser HP ini. Ekspor lalu salin teksnya ke tempat aman (mis. chat ke diri sendiri).</p>
+ <textarea id="bk" rows="3"></textarea><div style="display:flex;gap:6px;margin-top:8px"><button class="sm" onclick="exp()">Ekspor</button><button class="sm" onclick="imp()">Pulihkan</button></div></div>`}
+
+function R(){
+ const tabs=[['jual','Jual'],['stok','Stok'],['barang','Barang'],['lap','Laporan']];
+ const v={jual:vJual,stok:vStok,barang:vBarang,lap:vLap}[tab]();
+ $('#app').innerHTML=`<nav>${tabs.map(([k,n])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')">${n}</button>`).join('')}</nav>${v}${msg?`<div id="toast">${msg}</div>`:''}`}
+R();
+</script></body></html>
