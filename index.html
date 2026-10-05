@@ -41,6 +41,31 @@ h3{margin:0 0 8px;font-size:16px}.mu{color:var(--mu);font-size:13px}
 .sum>div{background:var(--ib);border-radius:14px;padding:10px 4px}
 .sum b{display:block;font-size:15px;margin-top:2px}.sum small{color:var(--mu);font-size:12px}
 #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 20px;border-radius:99px;font-weight:700;box-shadow:var(--sh);z-index:20}
+select{padding:11px;border:1px solid var(--ln);border-radius:12px;background:var(--ib);color:var(--tx);font:inherit;width:100%}
+input[type=search]{-webkit-appearance:none;appearance:none}
+.tb{display:flex;gap:8px;margin-bottom:10px}.sr{flex:1}.so{width:auto;max-width:132px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch}
+.chip{flex:none;padding:8px 14px;border-radius:99px;border:1px solid var(--ln);background:var(--cd);color:var(--tx);font:inherit;font-size:14px;white-space:nowrap}
+.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.sc{margin:8px 0;padding:12px}.stk{font-size:22px}
+details.card summary{font-weight:700;cursor:pointer}
+.fb{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom,0px));max-width:616px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--tx);color:var(--bg);border-radius:16px;padding:10px 10px 10px 16px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:8}
+.fb button{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:700}
+#app{padding-bottom:170px!important}
+.seg{display:flex;gap:4px;background:var(--ib);border-radius:14px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;padding:9px 4px;border:0;border-radius:11px;background:none;color:var(--mu);font:inherit;font-size:14px}
+.seg button.on{background:var(--cd);color:var(--ac);font-weight:700;box-shadow:var(--sh)}
+.help{background:var(--ib);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mu);margin-bottom:12px;line-height:1.5}.help b{color:var(--tx)}
+.it.menu{border:2px solid var(--ac)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sh{background:var(--cd);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto}
+.stp{margin:14px 0 8px;font-weight:700}
+.stp b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:99px;background:var(--ac);color:#fff;font-size:13px;margin-right:8px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.op{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border:2px solid var(--ln);background:var(--ib);color:var(--tx);border-radius:14px;font:inherit;text-align:left}
+.op.on{border-color:var(--ac);background:var(--cd)}.op.on span::before{content:"✓ ";color:var(--ac)}.op small{color:var(--mu)}
+.shb{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;position:sticky;bottom:0;background:var(--cd);padding-top:8px}
+.shb .big{width:auto;flex:1;margin:0}
 </style></head><body><div id="app"></div>
 <script>
 const KEY='warkop_v1';
@@ -50,98 +75,198 @@ const rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
 const dstr=d=>d.toLocaleDateString('sv-SE');
 const td=()=>dstr(new Date());
 const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
-let S=null,cart={},tab='jual',rd=td(),delId=null,msg='';
+let S=null,cart={},tab='jual',rd=td(),delId=null,msg='',per=7,q='',cat='',sort='az',editId=null,addOpen=false,catOpen=false,bsub='brg',sh=null,edM=null,edA=null,mAdd=false,aAdd=false;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!S||!Array.isArray(S.items)){S={items:[
-{id:'i1',name:'Indomie Goreng',p:5000,c:3200,s:40,m:10},
-{id:'i2',name:'Indomie Telur',p:7000,c:4700,s:40,m:10},
-{id:'i3',name:'Kopi Hitam',p:3000,c:1000,s:50,m:10},
-{id:'i4',name:'Es Teh',p:3000,c:800,s:50,m:10}],sales:[]}}
+if(!S||!Array.isArray(S.items)){S={items:[],sales:[]}}
+function norm(){if(!Array.isArray(S.sales))S.sales=[];if(!Array.isArray(S.menus))S.menus=[];if(!Array.isArray(S.addons))S.addons=[];if(!Array.isArray(S.cats))S.cats=['Makanan','Minuman','Snack','Lainnya'];
+ S.items.forEach(x=>{if(!x.cat)x.cat='Lainnya';if(!S.cats.includes(x.cat))S.cats.push(x.cat)})}
+norm();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const it=id=>S.items.find(x=>x.id===id);
+const base=x=>(x.ref&&it(x.ref))||x;
+const mnu=id=>S.menus.find(m=>m.id===id),adn=id=>S.addons.find(a=>a.id===id);
+const use=x=>x.ref&&it(x.ref)?(x.u>0?x.u:1):1;
 function flash(m){msg=m;R();setTimeout(()=>{msg='';R()},1400)}
-function add(id){cart[id]=(cart[id]||0)+1;R()}
-function sub(id){if(cart[id]>1)cart[id]--;else delete cart[id];R()}
+function lineInfo(l){
+ if(l.t==='m'){const mn=mnu(l.id),f=it(l.f);if(!mn||!f)return null;
+  const ads=(l.a||[]).map(adn).filter(Boolean);let p=mn.p,c=f.c;const uses=[{id:f.id,k:1}];
+  ads.forEach(a=>{p+=a.p;if(a.ref==='@same'){c+=f.c*a.k;uses.push({id:f.id,k:a.k})}else if(a.ref&&it(a.ref)){c+=it(a.ref).c*a.k;uses.push({id:a.ref,k:a.k})}else c+=a.c});
+  return{n:f.name+(ads.length?' + '+ads.map(a=>a.name).join(' + '):''),p,c,uses,g:f.name,mid:mn.id,ad:ads.map(a=>a.name)}}
+ const x=it(l.id);if(!x)return null;
+ return{n:x.name,p:x.p,c:x.c,uses:[{id:base(x).id,k:use(x)}],g:x.name}}
+const cl=()=>Object.keys(cart).map(k=>({k,q:cart[k].q,i:lineInfo(cart[k])})).filter(z=>z.i);
+function cinfo(){let n=0,t=0;cl().forEach(z=>{n+=z.q;t+=z.i.p*z.q});return{n,t}}
+function add(id){cart[id]=cart[id]||{q:0,t:'i',id};cart[id].q++;R()}
+function sub(k){if(cart[k].q>1)cart[k].q--;else delete cart[k];R()}
 function clr(){cart={};R()}
-function done(){const ids=Object.keys(cart);if(!ids.length)return;
- const l=ids.map(id=>{const x=it(id);x.s-=cart[id];return{id,n:x.name,q:cart[id],p:x.p,c:x.c}});
- S.sales.push({id:Date.now(),d:td(),l});cart={};save();flash('Tersimpan ✓')}
-const tg=x=>x.t>0?x.t:x.m*2;
-const need=x=>Math.max(tg(x)-x.s,1);
-function copyList(){const low=S.items.filter(x=>x.s<=x.m);
- const t='Daftar belanja '+td()+'\n'+low.map(x=>'- '+x.name+': '+need(x)).join('\n');
- try{navigator.clipboard.writeText(t).then(()=>flash('Disalin ✓')).catch(()=>flash('Gagal menyalin'))}catch(e){flash('Gagal menyalin')}}
+function done(){const L=cl();if(!L.length)return;
+ const rec=L.map(z=>{const i=z.i,l=cart[z.k];i.uses.forEach(u=>{it(u.id).s-=u.k*z.q});return{id:l.id,n:i.n,q:z.q,p:i.p,c:i.c,g:i.g,mid:i.mid,ad:i.ad,uses:i.uses.map(u=>({id:u.id,k:u.k*z.q}))}});
+ S.sales.push({id:Date.now(),d:td(),l:rec});cart={};save();flash('Tersimpan ✓')}
+function openM(id){sh={mid:id,f:'',a:[]};R()}
+function shX(){sh=null;R()}
+function shF(id){sh.f=id;R()}
+function shA(id){const i=sh.a.indexOf(id);if(i<0)sh.a.push(id);else sh.a.splice(i,1);R()}
+function shAdd(){if(!sh.f){flash('Pilih rasa dulu ya');return}
+ const a=sh.a.slice().sort(),key='m|'+sh.mid+'|'+sh.f+'|'+a.join(',');
+ if(cart[key])cart[key].q++;else cart[key]={q:1,t:'m',id:sh.mid,f:sh.f,a};
+ sh=null;R()}
+function sheet(){if(!sh)return'';const mn=mnu(sh.mid);if(!mn)return'';
+ const fs=mn.fl.map(it).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name,'id')),ads=mn.ad.map(adn).filter(Boolean);
+ let tot=mn.p;ads.forEach(a=>{if(sh.a.includes(a.id))tot+=a.p});
+ return `<div class="ov" onclick="shX()"><div class="sh" onclick="event.stopPropagation()"><h3 style="font-size:19px">${esc(mn.name)}</h3>
+ <div class="stp"><b>1</b>Pilih rasa</div>${fs.length?`<div class="opts">${fs.map(f=>`<button class="op ${sh.f===f.id?'on':''}" onclick="shF('${f.id}')"><span>${esc(f.name)}</span><small class="${f.s<=f.m?'bad':''}">stok ${f.s}</small></button>`).join('')}</div>`:'<p class="mu">Belum ada rasa. Atur di Barang → Menu pilihan.</p>'}
+ ${ads.length?`<div class="stp"><b>2</b>Tambahan <small class="mu">(boleh lebih dari satu, boleh kosong)</small></div><div class="opts">${ads.map(a=>`<button class="op ${sh.a.includes(a.id)?'on':''}" onclick="shA('${a.id}')"><span>${esc(a.name)}</span><small>+${rp(a.p)}</small></button>`).join('')}</div>`:''}
+ <div class="shb"><div><small class="mu">Total</small><br><b style="font-size:20px">${rp(tot)}</b></div><button class="big" onclick="shAdd()">Tambah ke pesanan</button></div></div></div>`}
 function adj(id,sg){const v=num($('#q_'+id).value);if(!v)return;it(id).s+=sg*v;save();R()}
 function addItem(){const n=$('#nn').value.trim();if(!n)return;
- S.items.push({id:'i'+Date.now(),name:n,p:num($('#np').value),c:num($('#nc').value),s:num($('#ns').value),m:num($('#nm').value),t:num($('#nt').value)});save();R()}
-function setF(id,f,v){const x=it(id);x[f]=f==='name'?v:num(v);save()}
-function del(id){if(delId===id){S.items=S.items.filter(x=>x.id!==id);delId=null;save()}else delId=id;R()}
+ S.items.push({id:'i'+Date.now(),name:n,cat:$('#ncat').value||'Lainnya',p:num($('#np').value),c:num($('#nc').value),s:num($('#ns').value),m:num($('#nm').value),t:num($('#nt').value),ref:$('#nr').value,u:num($('#nu').value)||1,nj:$('#nj').value==='1'});
+ addOpen=false;save();R()}
+function setF(id,f,v){const x=it(id);x[f]=(f==='name'||f==='cat'||f==='ref')?v:f==='nj'?v==='1':num(v);
+ if(f==='ref'&&v&&!(x.u>0))x.u=1;save();if(f==='cat'||f==='ref'||f==='nj')R()}
+function del(id){if(delId===id){S.items=S.items.filter(x=>x.id!==id);S.items.forEach(y=>{if(y.ref===id)y.ref=''});S.menus.forEach(m=>{m.fl=m.fl.filter(i=>i!==id)});S.addons.forEach(a=>{if(a.ref===id)a.ref=''});delId=null;editId=null;save()}else delId=id;R()}
+function tog(id){editId=editId===id?null:id;delId=null;R()}
+function addCat(){const n=$('#ncn').value.trim();if(!n||S.cats.includes(n))return;S.cats.push(n);save();R()}
+function delCat(i){const c=S.cats[i];if(S.items.some(x=>x.cat===c)){flash('Masih dipakai barang');return}S.cats.splice(i,1);if(cat===c)cat='';save();R()}
+function togM(id){edM=edM===id?null:id;delId=null;R()}
+function togFl(m,i){const a=mnu(m).fl,k=a.indexOf(i);if(k<0)a.push(i);else a.splice(k,1);save();R()}
+function togAd(m,i){const a=mnu(m).ad,k=a.indexOf(i);if(k<0)a.push(i);else a.splice(k,1);save();R()}
+function setM(id,f,v){mnu(id)[f]=f==='p'?num(v):v;save()}
+function addM(){const n=$('#mn').value.trim();if(!n)return;const id='m'+Date.now();S.menus.push({id,name:n,cat:$('#mc').value||'Lainnya',p:num($('#mp').value),fl:[],ad:[]});edM=id;mAdd=false;save();R()}
+function delM(id){if(delId===id){S.menus=S.menus.filter(m=>m.id!==id);delId=null;edM=null;save()}else delId=id;R()}
+function togA(id){edA=edA===id?null:id;delId=null;R()}
+function setA(id,f,v){const a=adn(id);a[f]=f==='name'||f==='ref'?v:num(v);if(f==='ref'&&v&&!(a.k>0))a.k=1;save();if(f==='ref')R()}
+function addA(){const n=$('#an').value.trim();if(!n)return;const id='a'+Date.now();S.addons.push({id,name:n,p:num($('#ap').value),ref:'',k:1,c:0});edA=id;aAdd=false;save();R()}
+function delA(id){if(delId===id){S.addons=S.addons.filter(a=>a.id!==id);S.menus.forEach(m=>{m.ad=m.ad.filter(i=>i!==id)});delId=null;edA=null;save()}else delId=id;R()}
 function undo(sid){const s=S.sales.find(x=>x.id===sid);if(!s)return;
- s.l.forEach(l=>{const x=it(l.id);if(x)x.s+=l.q});S.sales=S.sales.filter(x=>x.id!==sid);save();R()}
+ s.l.forEach(l=>{if(l.uses)l.uses.forEach(u=>{const x=it(u.id);if(x)x.s+=u.k});else{const x=it(l.b||l.id);if(x)x.s+=(l.k!=null?l.k:l.q)}});S.sales=S.sales.filter(x=>x.id!==sid);save();R()}
 function exp(){$('#bk').value=JSON.stringify(S)}
 function imp(){try{const d=JSON.parse($('#bk').value);
- if(d&&Array.isArray(d.items)&&Array.isArray(d.sales)){S=d;save();flash('Data dipulihkan ✓')}else flash('Format salah')}catch(e){flash('Format salah')}}
-function setTab(t){tab=t;R()}
-let per=7;
-function setPer(v){per=v;R()}
+ if(d&&Array.isArray(d.items)&&Array.isArray(d.sales)){S=d;norm();save();flash('Data dipulihkan ✓')}else flash('Format salah')}catch(e){flash('Format salah')}}
+function setTab(t){tab=t;q='';cat='';editId=null;R()}
 function setDate(v){if(v){rd=v;R()}}
+function setPer(v){per=v;R()}
+function setCat(i){cat=i<0?'':S.cats[i];R()}
+function setQ(v){q=v;paint()}
+const tg=x=>x.t>0?x.t:x.m*2;
+const need=x=>Math.max(tg(x)-x.s,1);
+function copyList(){const low=S.items.filter(x=>!x.ref&&x.s<=x.m);
+ const t='Daftar belanja '+td()+'\n'+low.map(x=>'- '+x.name+': '+need(x)).join('\n');
+ try{navigator.clipboard.writeText(t).then(()=>flash('Disalin ✓')).catch(()=>flash('Gagal menyalin'))}catch(e){flash('Gagal menyalin')}}
 const totals=list=>{let o=0,m=0;list.forEach(s=>s.l.forEach(l=>{o+=l.q*l.p;m+=l.q*l.c}));return{o,m,u:o-m}};
 
-function vJual(){
- const g=S.items.map(x=>`<button class="it" onclick="add('${x.id}')"><b>${esc(x.name)}</b><span>${rp(x.p)}</span><small class="${x.s<=x.m?'bad':''}">Stok ${x.s}</small>${cart[x.id]?`<i class="bd">${cart[x.id]}</i>`:''}</button>`).join('');
- const ids=Object.keys(cart);let tot=0;
- const ln=ids.map(id=>{const x=it(id);tot+=x.p*cart[id];return `<div class="row"><span>${esc(x.name)} × ${cart[id]}</span><span>${rp(x.p*cart[id])} <button class="sm" onclick="sub('${id}')">−</button></span></div>`}).join('');
- return `<div class="grid">${g||'<p class="mu">Belum ada barang. Tambah dulu di tab Barang.</p>'}</div>
- <div class="card"><h3>Pesanan sekarang</h3>${ln||'<p class="mu">Ketuk menu di atas untuk menambah.</p>'}
- ${ids.length?`<div class="row"><b>Total</b><b>${rp(tot)}</b></div><button class="big" onclick="done()">Simpan Penjualan</button><button class="sm" style="width:100%;margin-top:8px" onclick="clr()">Kosongkan</button>`:''}</div>`}
-
-function vStok(){
- const low=S.items.filter(x=>x.s<=x.m);let est=0;
- const belanja=`<div class="card"><h3>Daftar Belanja</h3>${low.length?low.map(x=>{est+=need(x)*x.c;return `<div class="row"><span>${esc(x.name)}<br><small class="mu">stok ${x.s}, target ${tg(x)}</small></span><b>beli ${need(x)}</b></div>`}).join('')+`<div class="row"><span>Perkiraan modal belanja</span><b>${rp(est)}</b></div><button class="big" onclick="copyList()">Salin Daftar</button>`:'<p class="mu">Semua stok masih aman 👍</p>'}</div>`;
- return belanja+`<p class="mu">Isi jumlah lalu ketuk Tambah (belanja/kulakan) atau Kurang (koreksi, rusak, dll).</p>`+S.items.map(x=>`<div class="card"><div class="row" style="border:0"><b>${esc(x.name)}</b><b class="${x.s<=x.m?'bad':''}">${x.s}${x.s<=x.m?' ⚠ menipis':''}</b></div>
- <div style="display:flex;gap:6px"><input id="q_${x.id}" type="number" inputmode="decimal" placeholder="jumlah"><button class="sm" onclick="adj('${x.id}',1)">+ Tambah</button><button class="sm" onclick="adj('${x.id}',-1)">− Kurang</button></div></div>`).join('')}
-
+function fl(only){const k=q.trim().toLowerCase();let c=null;
+ if(sort==='hot'){c={};S.sales.forEach(s=>s.l.forEach(l=>{c[l.id]=(c[l.id]||0)+l.q}))}
+ const a=S.items.filter(x=>(!only||only(x))&&(!cat||x.cat===cat)&&(!k||(x.name+' '+x.cat).toLowerCase().includes(k)));
+ const by={az:(a,b)=>a.name.localeCompare(b.name,'id'),za:(a,b)=>b.name.localeCompare(a.name,'id'),low:(a,b)=>base(a).s-base(b).s,high:(a,b)=>base(b).s-base(a).s,hot:(a,b)=>(c[b.id]||0)-(c[a.id]||0)};
+ return a.sort(by[sort]||by.az)}
+function bar(){
+ const chips=['Semua',...S.cats].map((c,i)=>`<button class="chip ${(i===0?cat==='':cat===c)?'on':''}" onclick="setCat(${i-1})">${esc(c)}</button>`).join('');
+ const so=[['az','A → Z'],['za','Z → A'],['low','Stok sedikit'],['high','Stok banyak'],['hot','Terlaris']].map(([v,n])=>`<option value="${v}" ${sort===v?'selected':''}>${n}</option>`).join('');
+ return `<div class="tb"><input class="sr" type="search" placeholder="🔍 Cari barang…" value="${esc(q)}" oninput="setQ(this.value)"><select class="so" onchange="sort=this.value;paint()">${so}</select></div><div class="chips">${chips}</div>`}
+const none='<p class="mu" style="grid-column:1/3">Tidak ada barang yang cocok.</p>';
+function sells(){const k=q.trim().toLowerCase();let c={};
+ if(sort==='hot')S.sales.forEach(s=>s.l.forEach(l=>{const key=l.mid||l.id;c[key]=(c[key]||0)+l.q}));
+ const a=[];
+ S.items.forEach(x=>{if(x.nj)return;const b=base(x);a.push({t:'i',id:x.id,name:x.name,cat:x.cat,p:x.p,st:b.s,low:b.s<=b.m,sub:'Stok '+b.s+(x.ref?' · pakai '+use(x):''),hit:x.name+' '+x.cat})});
+ S.menus.forEach(mn=>{const fs=mn.fl.map(it).filter(Boolean),st=fs.reduce((t,f)=>t+f.s,0);a.push({t:'m',id:mn.id,name:mn.name,cat:mn.cat,p:mn.p,st,low:fs.some(f=>f.s<=f.m),sub:fs.length+' rasa · stok '+st,hit:mn.name+' '+mn.cat+' '+fs.map(f=>f.name).join(' ')})});
+ const by={az:(a,b)=>a.name.localeCompare(b.name,'id'),za:(a,b)=>b.name.localeCompare(a.name,'id'),low:(a,b)=>a.st-b.st,high:(a,b)=>b.st-a.st,hot:(a,b)=>(c[b.id]||0)-(c[a.id]||0)};
+ return a.filter(x=>(!cat||x.cat===cat)&&(!k||x.hit.toLowerCase().includes(k))).sort(by[sort]||by.az)}
+function listJual(){return sells().map(x=>x.t==='m'?`<button class="it menu" onclick="openM('${x.id}')"><b>${esc(x.name)}</b><span>${rp(x.p)}+</span><small class="${x.low?'bad':''}">${x.sub}</small><small style="color:var(--ac)">Pilih rasa ▸</small></button>`:`<button class="it" onclick="add('${x.id}')"><b>${esc(x.name)}</b><span>${rp(x.p)}</span><small class="${x.low?'bad':''}">${x.sub}</small>${cart[x.id]?`<i class="bd">${cart[x.id].q}</i>`:''}</button>`).join('')||none}
+function listStok(){return fl(x=>!x.ref).map(x=>`<div class="card sc"><div class="row" style="border:0;padding:0"><div><b>${esc(x.name)}</b><br><small class="mu">${esc(x.cat)}</small></div><b class="stk ${x.s<=x.m?'bad':''}">${x.s}</b></div>${x.s<=x.m?'<small class="bad">⚠ menipis</small>':''}
+ <div style="display:flex;gap:6px;margin-top:8px"><input id="q_${x.id}" type="number" inputmode="decimal" placeholder="jumlah"><button class="sm" onclick="adj('${x.id}',1)">+ Tambah</button><button class="sm" onclick="adj('${x.id}',-1)">− Kurang</button></div></div>`).join('')||'<p class="mu">Tidak ada barang yang cocok.</p>'}
+const catOpts=sel=>S.cats.map(c=>`<option ${sel===c?'selected':''}>${esc(c)}</option>`).join('');
+const refOpts=(sel,ex)=>'<option value="">Tidak, stok sendiri</option>'+S.items.filter(y=>!y.ref&&y.id!==ex).map(y=>`<option value="${y.id}" ${sel===y.id?'selected':''}>${esc(y.name)}</option>`).join('');
+function listBarang(){return fl().map(x=>{const open=editId===x.id,b=base(x),kids=S.items.some(y=>y.ref===x.id);
+ const head=`<div class="row" onclick="tog('${x.id}')" style="border:0;padding:0;cursor:pointer"><div><b>${esc(x.name)}</b><br><small class="mu">${esc(x.cat)}${x.nj?' · rasa/bahan':' · jual '+rp(x.p)} · modal ${rp(x.c)}${x.ref?' · pakai stok '+esc(b.name)+' ×'+use(x):''}</small></div><span class="mu">${open?'▲':'▼'}</span></div>`;
+ const ed=open?`<div class="f" style="margin-top:12px">
+ <div style="grid-column:1/3"><label>Nama</label><input value="${esc(x.name)}" onchange="setF('${x.id}','name',this.value)"></div>
+ <div style="grid-column:1/3"><label>Kategori</label><select onchange="setF('${x.id}','cat',this.value)">${catOpts(x.cat)}</select></div>
+ <div style="grid-column:1/3"><label>Jenis</label><select onchange="setF('${x.id}','nj',this.value)"><option value="0" ${!x.nj?'selected':''}>Dijual langsung</option><option value="1" ${x.nj?'selected':''}>Rasa / bahan (tidak dijual langsung)</option></select></div>
+ ${x.nj?'':`<div><label>Harga jual</label><input type="number" inputmode="numeric" value="${x.p}" onchange="setF('${x.id}','p',this.value)"></div>`}
+ <div><label>Harga modal${x.ref?' per porsi':x.nj?' per satuan':''}</label><input type="number" inputmode="numeric" value="${x.c}" onchange="setF('${x.id}','c',this.value)"></div>
+ ${x.ref?'':`<div><label>Batas menipis</label><input type="number" inputmode="numeric" value="${x.m}" onchange="setF('${x.id}','m',this.value)"></div><div><label>Target stok</label><input type="number" inputmode="numeric" value="${x.t||''}" placeholder="${x.m*2}" onchange="setF('${x.id}','t',this.value)"></div>`}
+ ${kids||x.nj?'':`<div style="grid-column:1/3"><label>Pakai stok barang lain? (misal Indomie Double)</label><select onchange="setF('${x.id}','ref',this.value)">${refOpts(x.ref,x.id)}</select></div>`}
+ ${x.ref?`<div style="grid-column:1/3"><label>Stok terpakai per porsi</label><input type="number" inputmode="decimal" value="${x.u||1}" onchange="setF('${x.id}','u',this.value)"></div>`:''}
+ <div style="grid-column:1/3"><button class="sm ${delId===x.id?'bad':''}" style="width:100%" onclick="del('${x.id}')">${delId===x.id?'Yakin hapus?':'Hapus barang'}</button></div></div>`:'';
+ return `<div class="card sc">${head}${ed}</div>`}).join('')||'<p class="mu">Tidak ada barang yang cocok.</p>'}
+const refSel=sel=>'<option value="">Tidak dilacak</option><option value="@same" '+(sel==='@same'?'selected':'')+'>Bungkus rasa yang sama (untuk Double)</option>'+S.items.filter(x=>!x.ref).map(y=>`<option value="${y.id}" ${sel===y.id?'selected':''}>${esc(y.name)}</option>`).join('');
+function vMenu(){
+ const form=`<div class="card"><h3>Menu pilihan baru</h3><div class="f"><div style="grid-column:1/3"><label>Nama menu (contoh: Indomie)</label><input id="mn"></div><div><label>Kategori</label><select id="mc">${catOpts('Makanan')}</select></div><div><label>Harga dasar</label><input id="mp" type="number" inputmode="numeric"></div></div><button class="big" onclick="addM()">Buat menu</button></div>`;
+ const cands=S.items.filter(x=>x.nj&&!x.ref);
+ const list=S.menus.map(mn=>{const o=edM===mn.id,fs=mn.fl.map(it).filter(Boolean);
+  const head=`<div class="row" onclick="togM('${mn.id}')" style="border:0;padding:0;cursor:pointer"><div><b>${esc(mn.name)}</b><br><small class="mu">${esc(mn.cat)} · harga dasar ${rp(mn.p)} · ${fs.length} rasa · ${mn.ad.length} tambahan</small></div><span class="mu">${o?'▲':'▼'}</span></div>`;
+  const ed=o?`<div class="f" style="margin-top:12px"><div style="grid-column:1/3"><label>Nama menu</label><input value="${esc(mn.name)}" onchange="setM('${mn.id}','name',this.value)"></div><div><label>Kategori</label><select onchange="setM('${mn.id}','cat',this.value)">${catOpts(mn.cat)}</select></div><div><label>Harga dasar</label><input type="number" inputmode="numeric" value="${mn.p}" onchange="setM('${mn.id}','p',this.value)"></div></div>
+  <div class="stp"><b>1</b>Rasa yang dijual</div>${cands.length?`<div class="opts">${cands.map(x=>`<button class="op ${mn.fl.includes(x.id)?'on':''}" onclick="togFl('${mn.id}','${x.id}')"><span>${esc(x.name)}</span><small>stok ${x.s}</small></button>`).join('')}</div>`:'<p class="mu">Belum ada barang berjenis "Rasa / bahan". Buat dulu di sub-tab Barang (misal Indomie Soto), lalu pilih Jenis: Rasa / bahan.</p>'}
+  <div class="stp"><b>2</b>Tambahan yang boleh dipilih</div>${S.addons.length?`<div class="opts">${S.addons.map(a=>`<button class="op ${mn.ad.includes(a.id)?'on':''}" onclick="togAd('${mn.id}','${a.id}')"><span>${esc(a.name)}</span><small>+${rp(a.p)}</small></button>`).join('')}</div>`:'<p class="mu">Belum ada tambahan. Buat di sub-tab Tambahan.</p>'}
+  <button class="sm ${delId===mn.id?'bad':''}" style="width:100%;margin-top:14px" onclick="delM('${mn.id}')">${delId===mn.id?'Yakin hapus?':'Hapus menu'}</button>`:'';
+  return `<div class="card sc">${head}${ed}</div>`}).join('')||'<p class="mu">Belum ada menu pilihan.</p>';
+ return `<div class="help"><b>Menu pilihan</b> = menu yang punya rasa dan tambahan, misalnya <b>Indomie</b> (rasa: Soto, Kari. Tambahan: Telur, Kornet). Rasa dibuat dulu di sub-tab Barang dengan jenis "Rasa / bahan".</div><button class="sm" style="width:100%;margin-bottom:10px" onclick="mAdd=!mAdd;R()">${mAdd?'Tutup form':'+ Menu pilihan baru'}</button>${mAdd?form:''}${list}`}
+function vAdd(){
+ const form=`<div class="card"><h3>Tambahan baru</h3><div class="f"><div style="grid-column:1/3"><label>Nama (contoh: Telur)</label><input id="an"></div><div style="grid-column:1/3"><label>Harga tambahan</label><input id="ap" type="number" inputmode="numeric"></div></div><button class="big" onclick="addA()">Buat tambahan</button></div>`;
+ const list=S.addons.map(a=>{const o=edA===a.id;
+  const info=a.ref==='@same'?'pakai '+a.k+' bungkus rasa yang sama':a.ref&&it(a.ref)?'potong stok '+esc(it(a.ref).name)+' ×'+a.k:'stok tidak dilacak';
+  const head=`<div class="row" onclick="togA('${a.id}')" style="border:0;padding:0;cursor:pointer"><div><b>${esc(a.name)}</b><br><small class="mu">+${rp(a.p)} · ${info}</small></div><span class="mu">${o?'▲':'▼'}</span></div>`;
+  const ed=o?`<div class="f" style="margin-top:12px"><div style="grid-column:1/3"><label>Nama</label><input value="${esc(a.name)}" onchange="setA('${a.id}','name',this.value)"></div><div style="grid-column:1/3"><label>Harga tambahan</label><input type="number" inputmode="numeric" value="${a.p}" onchange="setA('${a.id}','p',this.value)"></div>
+  <div style="grid-column:1/3"><label>Stok yang dipotong</label><select onchange="setA('${a.id}','ref',this.value)">${refSel(a.ref)}</select></div>
+  ${a.ref?`<div style="grid-column:1/3"><label>Jumlah terpakai per porsi</label><input type="number" inputmode="decimal" value="${a.k||1}" onchange="setA('${a.id}','k',this.value)"></div>`:`<div style="grid-column:1/3"><label>Modal tambahan (karena stok tidak dilacak)</label><input type="number" inputmode="numeric" value="${a.c||0}" onchange="setA('${a.id}','c',this.value)"></div>`}
+  <div style="grid-column:1/3"><button class="sm ${delId===a.id?'bad':''}" style="width:100%" onclick="delA('${a.id}')">${delId===a.id?'Yakin hapus?':'Hapus tambahan'}</button></div></div>`:'';
+  return `<div class="card sc">${head}${ed}</div>`}).join('')||'<p class="mu">Belum ada tambahan.</p>';
+ return `<div class="help"><b>Tambahan</b> = pilihan ekstra seperti Telur, Kornet, atau Double. Modalnya dihitung otomatis dari stok yang dipotong. Untuk <b>Double</b>, pilih "Bungkus rasa yang sama".</div><button class="sm" style="width:100%;margin-bottom:10px" onclick="aAdd=!aAdd;R()">${aAdd?'Tutup form':'+ Tambahan baru'}</button>${aAdd?form:''}${list}`}
 function vBarang(){
- return `<div class="card"><h3>Tambah barang</h3><div class="f">
+ const seg=`<div class="seg">${[['brg','Barang'],['mnu','Menu pilihan'],['add','Tambahan']].map(([k,n])=>`<button class="${bsub===k?'on':''}" onclick="bsub='${k}';R()">${n}</button>`).join('')}</div>`;
+ return seg+(bsub==='mnu'?vMenu():bsub==='add'?vAdd():vBrg())}
+const lists={jual:listJual,stok:listStok,barang:listBarang};
+function paint(){const e=$('#list');if(e&&lists[tab])e.innerHTML=lists[tab]()}
+
+function vJual(){
+ const L=cl();let tot=0;
+ const ln=L.map(z=>{tot+=z.i.p*z.q;return `<div class="row"><span>${esc(z.i.n)} × ${z.q}</span><span>${rp(z.i.p*z.q)} <button class="sm" onclick="sub('${z.k}')">−</button></span></div>`}).join('');
+ return bar()+`<div class="grid" id="list">${listJual()}</div>`+(L.length?`<div class="card"><h3>Pesanan sekarang</h3>${ln}<div class="row"><b>Total</b><b>${rp(tot)}</b></div><button class="sm" style="width:100%;margin-top:6px" onclick="clr()">Kosongkan</button></div>`:'')}
+function vStok(){
+ const low=S.items.filter(x=>!x.ref&&x.s<=x.m);let est=0;
+ const bl=`<details class="card"><summary>🛒 Daftar Belanja (${low.length})</summary><div style="margin-top:8px">${low.length?low.map(x=>{est+=need(x)*x.c;return `<div class="row"><span>${esc(x.name)}<br><small class="mu">stok ${x.s}, target ${tg(x)}</small></span><b>beli ${need(x)}</b></div>`}).join('')+`<div class="row"><span>Perkiraan modal belanja</span><b>${rp(est)}</b></div><button class="big" onclick="copyList()">Salin Daftar</button>`:'<p class="mu">Semua stok masih aman 👍</p>'}</div></details>`;
+ return bl+bar()+`<div id="list">${listStok()}</div>`}
+function vBrg(){
+ const form=`<div class="card"><h3>Tambah barang</h3><div class="f">
  <div style="grid-column:1/3"><label>Nama</label><input id="nn"></div>
+ <div style="grid-column:1/3"><label>Kategori</label><select id="ncat">${catOpts('')}</select></div>
+ <div style="grid-column:1/3"><label>Jenis</label><select id="nj"><option value="0">Dijual langsung</option><option value="1">Rasa / bahan (tidak dijual langsung)</option></select></div>
  <div><label>Harga jual</label><input id="np" type="number" inputmode="numeric"></div>
  <div><label>Harga modal</label><input id="nc" type="number" inputmode="numeric"></div>
  <div><label>Stok awal</label><input id="ns" type="number" inputmode="numeric"></div>
- <div><label>Batas stok menipis</label><input id="nm" type="number" inputmode="numeric"></div>
- <div style="grid-column:1/3"><label>Target stok (ideal setelah belanja)</label><input id="nt" type="number" inputmode="numeric"></div></div>
- <button class="big" onclick="addItem()">Tambah</button></div>`+
- S.items.map(x=>`<div class="card"><div class="f">
- <div style="grid-column:1/3"><label>Nama</label><input value="${esc(x.name)}" onchange="setF('${x.id}','name',this.value)"></div>
- <div><label>Harga jual</label><input type="number" inputmode="numeric" value="${x.p}" onchange="setF('${x.id}','p',this.value)"></div>
- <div><label>Harga modal</label><input type="number" inputmode="numeric" value="${x.c}" onchange="setF('${x.id}','c',this.value)"></div>
- <div><label>Batas menipis</label><input type="number" inputmode="numeric" value="${x.m}" onchange="setF('${x.id}','m',this.value)"></div>
- <div><label>Target stok</label><input type="number" inputmode="numeric" value="${x.t||''}" placeholder="${x.m*2}" onchange="setF('${x.id}','t',this.value)"></div>
- <div style="align-self:end"><button class="sm ${delId===x.id?'bad':''}" style="width:100%" onclick="del('${x.id}')">${delId===x.id?'Yakin hapus?':'Hapus'}</button></div></div></div>`).join('')}
-
+ <div><label>Batas menipis</label><input id="nm" type="number" inputmode="numeric"></div>
+ <div style="grid-column:1/3"><label>Target stok (ideal setelah belanja)</label><input id="nt" type="number" inputmode="numeric"></div>
+ <div style="grid-column:1/3"><label>Pakai stok barang lain? (misal Indomie Double)</label><select id="nr">${refOpts('','')}</select></div>
+ <div style="grid-column:1/3"><label>Stok terpakai per porsi (kalau pakai stok barang lain)</label><input id="nu" type="number" inputmode="decimal" placeholder="1"></div></div>
+ <button class="big" onclick="addItem()">Tambah</button></div>`;
+ const kc=`<div class="card"><h3>Kategori</h3>${S.cats.map((c,i)=>`<div class="row"><span>${esc(c)}</span><button class="sm" onclick="delCat(${i})">Hapus</button></div>`).join('')}<div style="display:flex;gap:6px;margin-top:8px"><input id="ncn" placeholder="Kategori baru"><button class="sm" onclick="addCat()">Tambah</button></div></div>`;
+ return `<div style="display:flex;gap:8px;margin-bottom:10px"><button class="sm" style="flex:1" onclick="addOpen=!addOpen;R()">${addOpen?'Tutup form':'+ Tambah barang'}</button><button class="sm" style="flex:1" onclick="catOpen=!catOpen;R()">Kelola kategori</button></div>${addOpen?form:''}${catOpen?kc:''}${bar()}<div id="list">${listBarang()}</div>`}
 function vLap(){
  const day=S.sales.filter(s=>s.d===rd),t=totals(day),agg={};
  day.forEach(s=>s.l.forEach(l=>{agg[l.n]=(agg[l.n]||0)+l.q}));
  const cut=per===0?'':dstr(new Date(Date.now()-(per-1)*864e5));
- const ag={};S.sales.filter(s=>per===0||s.d>=cut).forEach(s=>s.l.forEach(l=>{const a=ag[l.n]||(ag[l.n]={q:0,u:0});a.q+=l.q;a.u+=l.q*(l.p-l.c)}));
+ const ag={};S.sales.filter(s=>per===0||s.d>=cut).forEach(s=>s.l.forEach(l=>{const a=ag[l.g||l.n]||(ag[l.g||l.n]={q:0,u:0});a.q+=l.q;a.u+=l.q*(l.p-l.c)}));
  const rk=Object.entries(ag).sort((a,b)=>b[1].q-a[1].q),mx=rk.length?rk[0][1].q:1,top=rk.slice().sort((a,b)=>b[1].u-a[1].u)[0];
  const terlaris=`<div class="card"><h3>Terlaris</h3><div style="display:flex;gap:6px;margin-bottom:8px">${[[1,'Hari ini'],[7,'7 hari'],[30,'30 hari'],[0,'Semua']].map(([v,n])=>`<button class="sm" style="flex:1;${per===v?'background:var(--ac);color:#fff':''}" onclick="setPer(${v})">${n}</button>`).join('')}</div>
  ${rk.map(([n,a],i)=>`<div style="margin:8px 0"><div class="row" style="border:0;padding:0"><span>${i+1}. ${esc(n)}</span><b>${a.q} terjual</b></div><div style="height:6px;border-radius:4px;background:var(--ln);margin:4px 0"><div style="height:6px;border-radius:4px;background:var(--ac);width:${a.q/mx*100}%"></div></div><small class="mu">Untung ${rp(a.u)}</small></div>`).join('')||'<p class="mu">Belum ada penjualan di periode ini.</p>'}
  ${top?`<p class="mu">Paling banyak untung: <b>${esc(top[0])}</b> (${rp(top[1].u)})</p>`:''}</div>`;
+ const adc={};S.sales.filter(s=>per===0||s.d>=cut).forEach(s=>s.l.forEach(l=>(l.ad||[]).forEach(n=>{adc[n]=(adc[n]||0)+l.q})));
+ const adcard=Object.keys(adc).length?`<div class="card"><h3>Tambahan terlaris</h3>${Object.entries(adc).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="row"><span>${esc(n)}</span><b>${v}×</b></div>`).join('')}</div>`:'';
  const days=[...Array(7)].map((_,i)=>dstr(new Date(Date.now()-i*864e5)));
  return `<input type="date" value="${rd}" onchange="setDate(this.value)">
  <div class="card"><div class="sum"><div><small>Pemasukan</small><b>${rp(t.o)}</b></div><div><small>Modal</small><b>${rp(t.m)}</b></div><div><small>Untung</small><b class="ok">${rp(t.u)}</b></div></div></div>
  ${terlaris}
+ ${adcard}
  <div class="card"><h3>Barang terjual</h3>${Object.keys(agg).map(n=>`<div class="row"><span>${esc(n)}</span><b>${agg[n]}</b></div>`).join('')||'<p class="mu">Belum ada penjualan.</p>'}</div>
  <div class="card"><h3>Transaksi</h3>${day.slice().reverse().map(s=>`<div class="row"><span class="mu">${s.l.map(l=>esc(l.n)+' ×'+l.q).join(', ')}</span><button class="sm" onclick="undo(${s.id})">Batalkan</button></div>`).join('')||'<p class="mu">-</p>'}</div>
  <div class="card"><h3>7 hari terakhir</h3>${days.map(d=>{const x=totals(S.sales.filter(s=>s.d===d));return `<div class="row"><span>${d}</span><span>${rp(x.o)} · <span class="ok">${rp(x.u)}</span></span></div>`}).join('')}</div>
  <div class="card"><h3>Backup data</h3><p class="mu">Data tersimpan di browser HP ini. Ekspor lalu salin teksnya ke tempat aman (mis. chat ke diri sendiri).</p>
  <textarea id="bk" rows="3"></textarea><div style="display:flex;gap:6px;margin-top:8px"><button class="sm" onclick="exp()">Ekspor</button><button class="sm" onclick="imp()">Pulihkan</button></div></div>`}
-
 function R(){
  const tabs=[['jual','🛒','Jual'],['stok','📦','Stok'],['barang','🏷️','Barang'],['lap','📊','Laporan']];
  const v={jual:vJual,stok:vStok,barang:vBarang,lap:vLap}[tab]();
- const hr=totals(S.sales.filter(s=>s.d===td()));
+ const hr=totals(S.sales.filter(s=>s.d===td())),ci=cinfo();
  const tgl=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
- $('#app').innerHTML=`<div class="hd"><div><h1>☕ Kasir Warkop</h1><small>${tgl}</small></div><div class="t"><small>Pemasukan hari ini</small><b>${rp(hr.o)}</b></div></div>${v}<nav>${tabs.map(([k,i,n])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')"><span>${i}</span>${n}</button>`).join('')}</nav>${msg?`<div id="toast">${msg}</div>`:''}`}
+ $('#app').innerHTML=`<div class="hd"><div><h1>☕ Kasir Warkop</h1><small>${tgl}</small></div><div class="t"><small>Pemasukan hari ini</small><b>${rp(hr.o)}</b></div></div>${v}${sheet()}${tab==='jual'&&ci.n?`<div class="fb"><div><b>${ci.n} pesanan</b><br><small>${rp(ci.t)}</small></div><button onclick="done()">Simpan</button></div>`:''}<nav>${tabs.map(([k,i,n])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')"><span>${i}</span>${n}</button>`).join('')}</nav>${msg?`<div id="toast">${msg}</div>`:''}`}
 R();
 </script></body></html>
