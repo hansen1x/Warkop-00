@@ -68,6 +68,26 @@ details.card summary{font-weight:700;cursor:pointer}
 .shb .big{width:auto;flex:1;margin:0}
 .nr{display:grid;grid-template-columns:1fr 78px 98px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln)}.nr input{padding:9px 8px}
 .pe{display:flex;flex-direction:column;gap:6px;margin-top:8px}.pe button{white-space:nowrap;padding:10px 6px;border:1px solid var(--ln);border-radius:12px;background:var(--ib);color:var(--tx);font:inherit;font-size:14px;font-weight:700}.pe button:active{background:var(--ac);color:var(--on)}
+/* hijau segar + gradasi cahaya */
+body{background:linear-gradient(180deg,#D3EEDF 0,#E6F4EC 180px,#EEF6F1 380px) no-repeat #EEF6F1}
+.hd{position:relative;overflow:hidden;background:linear-gradient(135deg,#1B6F51 0%,#2A9970 55%,#3DBA8B 100%);box-shadow:0 10px 24px rgba(31,122,90,.30),inset 0 1px 0 rgba(255,255,255,.35)}
+.hd::before{content:"";position:absolute;right:-30px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.38),rgba(255,255,255,0) 68%)}
+.hd::after{content:"";position:absolute;left:0;right:0;top:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0))}
+.hd>*{position:relative;z-index:1}
+.hd h1{white-space:nowrap}.hd .t{flex:none}.hd .t small{white-space:nowrap}
+.card{background:linear-gradient(180deg,#FFFFFF,#F7FCF9);box-shadow:0 6px 18px rgba(31,122,90,.10)}
+.it{background:linear-gradient(180deg,#FFFFFF,#F4FAF7);box-shadow:0 6px 14px rgba(31,122,90,.10),inset 0 1px 0 #fff}
+.big{background:linear-gradient(135deg,#3DBA8B,#1F7A5A);box-shadow:0 6px 14px rgba(31,122,90,.30),inset 0 1px 0 rgba(255,255,255,.3)}
+.bd{background:linear-gradient(135deg,#3DBA8B,#1F7A5A);box-shadow:0 2px 6px rgba(31,122,90,.35)}
+.chip.on{background:linear-gradient(135deg,#3DBA8B,#1F7A5A);box-shadow:0 4px 10px rgba(31,122,90,.30)}
+nav{box-shadow:0 -6px 20px rgba(31,122,90,.12)}
+nav button.on{background:linear-gradient(180deg,#E3F6EC,#CBEBDB);color:#1B6F51}
+.fb{background:linear-gradient(135deg,#14302A,#1F7A5A);box-shadow:0 10px 24px rgba(20,48,42,.35)}
+.fb button{background:linear-gradient(135deg,#3DBA8B,#2A9970)}
+.sum>div{background:linear-gradient(180deg,#F1F9F5,#E3F2EA)}
+.seg button.on{background:linear-gradient(180deg,#FFFFFF,#EAF6F0)}
+.stp b{background:linear-gradient(135deg,#3DBA8B,#1F7A5A)}
+.help{background:linear-gradient(135deg,#E7F5EE,#F4FBF8)}
 </style></head><body><div id="app"></div>
 <script>
 const KEY='warkop_v1';
