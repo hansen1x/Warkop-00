@@ -4,11 +4,11 @@
 <link rel="apple-touch-icon" href="icon.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="WARKOP 00'">
-<meta name="theme-color" content="#17140F">
+<meta name="theme-color" content="#1F7A5A">
 <title>WARKOP 00'</title>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:dark;--bg:#17140F;--cd:#221E16;--tx:#F3EBD9;--mu:#A8997E;--ac:#D4A84B;--ac2:#E8C474;--ln:#3A3326;--ok:#6FCF97;--bad:#EF7A6B;--sh:0 2px 10px rgba(0,0,0,.45);--ib:#1B1810;--on:#17140F}
-html{background:#17140F}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:light;--bg:#EEF6F1;--cd:#FFFFFF;--tx:#14302A;--mu:#5E7A6E;--ac:#1F7A5A;--ac2:#2A8C69;--ln:#D5E6DC;--ok:#1F7A5A;--bad:#C0392B;--sh:0 2px 10px rgba(20,48,42,.09);--ib:#E4F0E9;--on:#FFFFFF}
+html{background:#EEF6F1}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -67,7 +67,7 @@ details.card summary{font-weight:700;cursor:pointer}
 .shb{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;position:sticky;bottom:0;background:var(--cd);padding-top:8px}
 .shb .big{width:auto;flex:1;margin:0}
 .nr{display:grid;grid-template-columns:1fr 78px 98px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln)}.nr input{padding:9px 8px}
-.pe{display:flex;gap:6px;margin-top:6px}.pe button{flex:1;padding:10px 4px;border:1px solid var(--ln);border-radius:12px;background:var(--ib);color:var(--tx);font:inherit;font-size:14px;font-weight:700}.pe button:active{background:var(--ac);color:var(--on)}
+.pe{display:flex;flex-direction:column;gap:6px;margin-top:8px}.pe button{white-space:nowrap;padding:10px 6px;border:1px solid var(--ln);border-radius:12px;background:var(--ib);color:var(--tx);font:inherit;font-size:14px;font-weight:700}.pe button:active{background:var(--ac);color:var(--on)}
 </style></head><body><div id="app"></div>
 <script>
 const KEY='warkop_v1';
@@ -305,6 +305,6 @@ function R(){
  const v={jual:vJual,stok:vStok,barang:vBarang,lap:vLap}[tab]();
  const hr=totals(S.sales.filter(s=>s.d===td())),ci=cinfo();
  const tgl=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
- $('#app').innerHTML=`<div class="hd"><div><h1>WARKOP 00'</h1><small>${tgl}</small></div><div class="t"><small>Pemasukan hari ini</small><b>${rp(hr.o)}</b></div></div>${v}${sheet()}${notaSheet()}${tab==='jual'&&ci.n?`<div class="fb"><div><b>${ci.n} pesanan</b><br><small>${rp(ci.t)}</small></div><button onclick="done()">Simpan</button></div>`:''}<nav>${tabs.map(([k,i,n])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')"><span>${i}</span>${n}</button>`).join('')}</nav>${msg?`<div id="toast">${msg}</div>`:''}`}
+ $('#app').innerHTML=`<div class="hd"><div><h1>☕ WARKOP 00'</h1><small>${tgl}</small></div><div class="t"><small>Pemasukan hari ini</small><b>${rp(hr.o)}</b></div></div>${v}${sheet()}${notaSheet()}${tab==='jual'&&ci.n?`<div class="fb"><div><b>${ci.n} pesanan</b><br><small>${rp(ci.t)}</small></div><button onclick="done()">Simpan</button></div>`:''}<nav>${tabs.map(([k,i,n])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')"><span>${i}</span>${n}</button>`).join('')}</nav>${msg?`<div id="toast">${msg}</div>`:''}`}
 R();
 </script></body></html>
